@@ -21,6 +21,7 @@ void UGrabber::BeginPlay()
 
 	// ...
 	
+	UE_LOG(LogTemp, Warning, TEXT("Woww Grabber is working!"));
 }
 
 
