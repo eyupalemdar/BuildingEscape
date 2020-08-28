@@ -19,19 +19,11 @@ UOpenDoor::UOpenDoor()
 void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-
-	UE_LOG(LogTemp, Warning, TEXT("Current Yaw: %f"), CurrentRotation.Yaw);
-
-	CurrentRotation.Yaw += 90;
-
-	UE_LOG(LogTemp, Warning, TEXT("After Rotation Yaw: %f"), CurrentRotation.Yaw);
-
-	bool IsSuccessfullyRotated = GetOwner()->SetActorRotation(CurrentRotation);
-
-	UE_LOG(LogTemp, Warning, TEXT("Is Successfully Rotated: %b"), IsSuccessfullyRotated);
+	
+	// Door must rotate to 90 degree in Yaw axis.
+	// So TargetYaw start with 90 axis and plus Door's Current Yaw value.
+	// Because Door can be different positions on Map.
+	TargetYaw += GetOwner()->GetActorRotation().Yaw;
 }
 
 
@@ -40,6 +32,23 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *GetOwner()->GetActorRotation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Before Yaw is: %f"), GetOwner()->GetActorRotation().Yaw);
+
+	float CurrentYaw = GetOwner()->GetActorRotation().Yaw;
+	FRotator OpenDoor(0.f, TargetYaw, 0.f);
+
+	// It is time independent so on a faster computer it will run faster, bad computing
+	//OpenDoor.Yaw = FMath::Lerp(CurrentYaw, TargetYaw, 0.02f);
+
+	// Time dependant to Unreal Tick (DeltaTime)
+	//OpenDoor.Yaw = FMath::FInterpConstantTo(CurrentYaw, TargetYaw, DeltaTime, 45);
+	
+	// Time dependant to Unreal Tick (DeltaTime)
+	OpenDoor.Yaw = FMath::FInterpTo(CurrentYaw, TargetYaw, DeltaTime, 2);
+
+	GetOwner()->SetActorRotation(OpenDoor);
+
+	UE_LOG(LogTemp, Warning, TEXT("After Yaw is: %f"), GetOwner()->GetActorRotation().Yaw);
 }
 
