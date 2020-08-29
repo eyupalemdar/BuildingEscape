@@ -26,4 +26,5 @@ public:
 
 private:
 	float Reach = 100.f;
+	FHitResult HitResult2;
 };
