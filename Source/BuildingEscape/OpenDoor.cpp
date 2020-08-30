@@ -1,8 +1,8 @@
 // Copyrights AlemdarLabs 2020
 
+#include "OpenDoor.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "OpenDoor.h"
 #include "GameFramework/Actor.h"
 
 #define OUT
@@ -24,10 +24,8 @@ void UOpenDoor::BeginPlay()
 	CurrentYaw = InitialYaw;
 	OpenAngle += InitialYaw;
 
-	if (!PressurePlate)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s has the open door component on it but no pressureplate set!"), *GetOwner()->GetName());
-	}
+	FindPressurePlate();
+	FindAudioComponent();
 }
 
 // Called every frame
@@ -55,6 +53,14 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+
+	if (!AudioComponent) { return; }
+	CloseDoorSoundEnabled = true;
+	if (OpenDoorSoundEnabled)
+	{
+		AudioComponent->Play();
+		OpenDoorSoundEnabled = false;
+	}
 }
 
 void UOpenDoor::CloseDoor(float DeltaTime)
@@ -63,6 +69,14 @@ void UOpenDoor::CloseDoor(float DeltaTime)
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+
+	if (!AudioComponent) { return; }
+	OpenDoorSoundEnabled = true;
+	if (CloseDoorSoundEnabled)
+	{
+		AudioComponent->Play();
+		CloseDoorSoundEnabled = false;
+	}
 }
 
 float UOpenDoor::TotalMassOfActors() const
@@ -81,4 +95,21 @@ float UOpenDoor::TotalMassOfActors() const
 	}
 
 	return TotalMass;
+}
+
+void UOpenDoor::FindPressurePlate() const
+{
+	if (!PressurePlate)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s has the open door component on it but no pressureplate set!"), *GetOwner()->GetName());
+	}
+}
+
+void UOpenDoor::FindAudioComponent()
+{
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Audio component is missing on %s"), *GetOwner()->GetName());
+	}
 }
